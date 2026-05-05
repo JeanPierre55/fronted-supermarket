@@ -1,4 +1,5 @@
 import type { Product } from "../types";
+import { formatCurrency } from "../utils/money";
 
 interface CatalogPanelProps {
   products: Product[];
@@ -55,7 +56,7 @@ export function CatalogPanel({
               </small>
             </div>
             <div className="product-actions">
-              <span>${product.unitPrice.toFixed(2)}</span>
+              <span>{formatCurrency(product.unitPrice)}</span>
               <button onClick={() => onAddProduct(product)}>Add</button>
             </div>
           </li>

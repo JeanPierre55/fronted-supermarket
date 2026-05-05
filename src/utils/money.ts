@@ -6,7 +6,7 @@ export function formatCurrency(value: number, currency = "COP"): string {
   return new Intl.NumberFormat("es-CO", {
     style: "currency",
     currency,
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0
   }).format(value);
 }

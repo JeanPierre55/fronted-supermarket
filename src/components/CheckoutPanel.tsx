@@ -22,66 +22,62 @@ export function CheckoutPanel({
 }: CheckoutPanelProps) {
   return (
     <section className="panel">
-      <h2>Checkout</h2>
+      <h2>💳 Pago</h2>
 
-      <div className="payment-methods">
+      <div className="payment-methods" style={{ marginTop: "0.75rem" }}>
         <label>
-          <input
-            type="radio"
-            checked={payment.method === "cash"}
-            onChange={() => onMethodChange("cash")}
-          />
-          Cash
+          <input type="radio" checked={payment.method === "cash"} onChange={() => onMethodChange("cash")} />
+          💵 Efectivo
         </label>
         <label>
-          <input
-            type="radio"
-            checked={payment.method === "card"}
-            onChange={() => onMethodChange("card")}
-          />
-          Card
+          <input type="radio" checked={payment.method === "card"} onChange={() => onMethodChange("card")} />
+          💳 Tarjeta
         </label>
         <label>
-          <input
-            type="radio"
-            checked={payment.method === "mixed"}
-            onChange={() => onMethodChange("mixed")}
-          />
-          Mixed
+          <input type="radio" checked={payment.method === "mixed"} onChange={() => onMethodChange("mixed")} />
+          🔀 Mixto
         </label>
       </div>
 
       {(payment.method === "cash" || payment.method === "mixed") && (
-        <label>
-          Cash received
+        <div>
+          <span className="checkout-label">Efectivo recibido</span>
           <input
             type="number"
             min={0}
-            value={payment.cashReceived}
-            onChange={(event) => onPaymentChange({ cashReceived: Number(event.target.value || 0) })}
+            value={payment.cashReceived || ""}
+            placeholder="0"
+            onChange={(e) => onPaymentChange({ cashReceived: Number(e.target.value || 0) })}
           />
-        </label>
+        </div>
       )}
 
       {(payment.method === "card" || payment.method === "mixed") && (
-        <label>
-          Card paid
+        <div>
+          <span className="checkout-label">Monto con tarjeta</span>
           <input
             type="number"
             min={0}
-            value={payment.cardPaid}
-            onChange={(event) => onPaymentChange({ cardPaid: Number(event.target.value || 0) })}
+            value={payment.cardPaid || ""}
+            placeholder="0"
+            onChange={(e) => onPaymentChange({ cardPaid: Number(e.target.value || 0) })}
           />
-        </label>
+        </div>
       )}
 
       <div className="checkout-summary">
-        <span>Total due: {formatCurrency(grandTotal)}</span>
-        <span>Change due: {formatCurrency(changeDue)}</span>
+        <span>Total a pagar: <strong>{formatCurrency(grandTotal)}</strong></span>
+        <span style={{ color: changeDue > 0 ? "var(--green)" : "var(--text-secondary)" }}>
+          Cambio: <strong>{formatCurrency(changeDue)}</strong>
+        </span>
       </div>
 
-      <button onClick={onComplete} disabled={!isValid || grandTotal <= 0}>
-        Confirm payment
+      <button
+        className="confirm"
+        onClick={onComplete}
+        disabled={!isValid || grandTotal <= 0}
+      >
+        ✓ Confirmar Pago
       </button>
     </section>
   );

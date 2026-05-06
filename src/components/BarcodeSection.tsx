@@ -27,24 +27,22 @@ export function BarcodeSection({
 }: BarcodeSectionProps) {
   return (
     <section className="panel">
-      <h2>Barcode</h2>
-      <div className="barcode-box">
+      <h2>🔖 Código de Barras</h2>
+
+      <div className="barcode-box" style={{ marginTop: "0.75rem" }}>
         <input
-          placeholder="Enter barcode manually"
+          placeholder="Ingresar código manualmente..."
           value={value}
-          onChange={(event) => onValueChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              onSubmit();
-            }
-          }}
+          onChange={(e) => onValueChange(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") onSubmit(); }}
         />
-        <button onClick={onSubmit}>Add by Barcode</button>
-        <button className="secondary" onClick={onOpenScanner}>
-          Open Camera Scanner
+        <button onClick={onSubmit}>Agregar</button>
+        <button className="secondary" onClick={onOpenScanner} title="Abrir cámara">
+          📷
         </button>
       </div>
-      {error ? <p className="error-text">{error}</p> : null}
+
+      {error ? <p className="error-text">⚠ {error}</p> : null}
 
       {isScannerOpen ? (
         <CameraScannerModal
@@ -75,57 +73,40 @@ function CameraScannerModal({ cameraError, onClose, onDetected, onCameraError }:
 
     const start = async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" }
-        });
-
-        if (!videoRef.current) {
-          return;
-        }
-
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        if (!videoRef.current) return;
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
         setIsReady(true);
 
-        const DetectorCtor = (window as unknown as { BarcodeDetector?: new () => { detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue?: string }>> } }).BarcodeDetector;
+        const DetectorCtor = (window as unknown as {
+          BarcodeDetector?: new () => { detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue?: string }>> };
+        }).BarcodeDetector;
 
         if (!DetectorCtor) {
-          onCameraError("BarcodeDetector is not supported in this browser. Use manual barcode input.");
+          onCameraError("BarcodeDetector no está disponible en este navegador. Usa la entrada manual.");
           return;
         }
 
         const detector = new DetectorCtor();
-
         timer = window.setInterval(async () => {
-          if (!videoRef.current) {
-            return;
-          }
-
+          if (!videoRef.current) return;
           try {
             const results = await detector.detect(videoRef.current);
             const first = results[0]?.rawValue;
-            if (first) {
-              onDetected(first);
-              onClose();
-            }
-          } catch {
-            // Ignore detect loop transient failures.
-          }
+            if (first) { onDetected(first); onClose(); }
+          } catch { /* ignore */ }
         }, 400);
       } catch {
-        onCameraError("Camera permission denied or unavailable. Please use manual barcode input.");
+        onCameraError("Permiso de cámara denegado. Usa la entrada manual.");
       }
     };
 
     void start();
 
     return () => {
-      if (timer) {
-        window.clearInterval(timer);
-      }
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
+      if (timer) window.clearInterval(timer);
+      if (stream) stream.getTracks().forEach((t) => t.stop());
     };
   }, [onClose, onDetected, onCameraError]);
 
@@ -133,12 +114,22 @@ function CameraScannerModal({ cameraError, onClose, onDetected, onCameraError }:
     <div className="scanner-modal" role="dialog" aria-modal="true">
       <div className="scanner-body">
         <div className="scanner-head">
-          <h3>Camera Scanner</h3>
-          <button onClick={onClose}>Close</button>
+          <h3>📷 Escáner de Cámara</h3>
+          <button className="secondary" onClick={onClose}>✕ Cerrar</button>
         </div>
         <video ref={videoRef} muted playsInline className="scanner-video" />
-        {!isReady ? <p>Starting camera...</p> : null}
-        {cameraError ? <p className="error-text">{cameraError}</p> : <p>Point camera at product barcode.</p>}
+        {!isReady && !cameraError ? (
+          <p style={{ color: "var(--text-muted)", marginTop: "0.75rem", fontSize: "0.85rem" }}>
+            Iniciando cámara...
+          </p>
+        ) : null}
+        {cameraError ? (
+          <p className="error-text" style={{ marginTop: "0.75rem" }}>⚠ {cameraError}</p>
+        ) : isReady ? (
+          <p style={{ color: "var(--text-muted)", marginTop: "0.75rem", fontSize: "0.85rem" }}>
+            Apunta la cámara al código de barras del producto.
+          </p>
+        ) : null}
       </div>
     </div>
   );

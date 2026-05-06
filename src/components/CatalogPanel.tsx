@@ -18,50 +18,55 @@ export function CatalogPanel({
   onCategoryChange,
   onAddProduct
 }: CatalogPanelProps) {
-  const categories = ["All", ...new Set(products.map((product) => product.category))];
+  const categories = ["All", ...new Set(products.map((p) => p.category))];
 
-  const filtered = products.filter((product) => {
-    const matchesName = product.name.toLowerCase().includes(searchTerm.toLowerCase().trim());
-    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+  const filtered = products.filter((p) => {
+    const matchesName = p.name.toLowerCase().includes(searchTerm.toLowerCase().trim());
+    const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
     return matchesName && matchesCategory;
   });
 
   return (
     <section className="panel">
-      <h2>Product Catalog</h2>
-      <div className="catalog-controls">
+      <h2>📦 Catálogo de Productos</h2>
+
+      <div className="catalog-controls" style={{ marginTop: "0.75rem" }}>
         <input
-          placeholder="Search by name"
+          placeholder="🔍  Buscar producto..."
           value={searchTerm}
-          onChange={(event) => onSearchTermChange(event.target.value)}
+          onChange={(e) => onSearchTermChange(e.target.value)}
+          autoFocus
         />
-        <select value={selectedCategory} onChange={(event) => onCategoryChange(event.target.value)}>
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
+        <select value={selectedCategory} onChange={(e) => onCategoryChange(e.target.value)}>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat === "All" ? "Todas las categorías" : cat}
             </option>
           ))}
         </select>
       </div>
 
-      {filtered.length === 0 ? <p className="empty-state">No products found for current filters.</p> : null}
-
-      <ul className="product-list">
-        {filtered.map((product) => (
-          <li key={product.id} className="product-row">
-            <div>
-              <strong>{product.name}</strong>
-              <small>
-                {product.category} | Stock: {product.stock}
-              </small>
-            </div>
-            <div className="product-actions">
-              <span>{formatCurrency(product.unitPrice)}</span>
-              <button onClick={() => onAddProduct(product)}>Add</button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {filtered.length === 0 ? (
+        <p className="empty-state">No se encontraron productos.</p>
+      ) : (
+        <ul className="product-list">
+          {filtered.map((product) => (
+            <li key={product.id} className="product-row">
+              <div>
+                <strong>{product.name}</strong>
+                <small>
+                  {product.category} · Stock: {product.stock}
+                  {product.taxable ? " · IVA" : ""}
+                </small>
+              </div>
+              <div className="product-actions">
+                <span>{formatCurrency(product.unitPrice)}</span>
+                <button onClick={() => onAddProduct(product)}>+ Agregar</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

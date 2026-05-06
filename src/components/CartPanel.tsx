@@ -25,103 +25,134 @@ export function CartPanel({
 }: CartPanelProps) {
   return (
     <section className="panel">
-      <h2>Cart</h2>
-
-      {lines.length === 0 ? <p className="empty-state">Cart is empty.</p> : null}
-
-      <ul className="cart-list">
-        {lines.map((line) => {
-          const lineComputed = computeLine(line);
-          return (
-            <li key={line.productId} className="cart-row">
-              <div>
-                <strong>{line.name}</strong>
-                <small>{formatCurrency(line.unitPrice)} each</small>
-              </div>
-
-              <div className="qty-controls">
-                <button onClick={() => onSetQuantity(line.productId, Math.max(1, line.quantity - 1))}>-</button>
-                <span>{line.quantity}</span>
-                <button onClick={() => onSetQuantity(line.productId, line.quantity + 1)}>+</button>
-                <button className="danger" onClick={() => onRemove(line.productId)}>
-                  Remove
-                </button>
-              </div>
-
-              <div className="discount-controls">
-                <select
-                  value={line.lineDiscountType ?? "none"}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    const type: DiscountType = value === "none" ? null : (value as DiscountType);
-                    onSetLineDiscount(line.productId, type, type ? line.lineDiscountValue : 0);
-                  }}
-                >
-                  <option value="none">No discount</option>
-                  <option value="percent">% Discount</option>
-                  <option value="fixed">Fixed Discount</option>
-                </select>
-                {line.lineDiscountType ? (
-                  <input
-                    type="number"
-                    min={0}
-                    value={line.lineDiscountValue}
-                    onChange={(event) =>
-                      onSetLineDiscount(line.productId, line.lineDiscountType, Number(event.target.value || 0))
-                    }
-                  />
-                ) : null}
-              </div>
-
-              <div className="line-summary">
-                <small>Line discount: {formatCurrency(lineComputed.lineDiscountAmount)}</small>
-                <strong>{formatCurrency(lineComputed.lineSubtotalAfterDiscount)}</strong>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-
-      <div className="cart-discount-box">
-        <h3>Cart Discount</h3>
-        <div className="discount-controls">
-          <select
-            value={cartDiscountType ?? "none"}
-            onChange={(event) => {
-              const raw = event.target.value;
-              const type: DiscountType = raw === "none" ? null : (raw as DiscountType);
-              onSetCartDiscount(type, type ? cartDiscountValue : 0);
-            }}
-          >
-            <option value="none">No discount</option>
-            <option value="percent">% Discount</option>
-            <option value="fixed">Fixed Discount</option>
-          </select>
-          {cartDiscountType ? (
-            <input
-              type="number"
-              min={0}
-              value={cartDiscountValue}
-              onChange={(event) => onSetCartDiscount(cartDiscountType, Number(event.target.value || 0))}
-            />
-          ) : null}
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+        <h2>🛒 Carrito</h2>
+        {lines.length > 0 && (
+          <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+            {lines.length} {lines.length === 1 ? "artículo" : "artículos"}
+          </span>
+        )}
       </div>
 
-      <div className="totals-grid">
-        <span>Subtotal</span>
-        <strong>{formatCurrency(totals.subtotal)}</strong>
-        <span>Line discounts</span>
-        <strong>- {formatCurrency(totals.lineDiscountTotal)}</strong>
-        <span>Cart discount</span>
-        <strong>- {formatCurrency(totals.cartDiscountAmount)}</strong>
-        <span>Taxable base</span>
-        <strong>{formatCurrency(totals.taxableBase)}</strong>
-        <span>Tax</span>
-        <strong>{formatCurrency(totals.taxAmount)}</strong>
-        <span>Total</span>
-        <strong>{formatCurrency(totals.grandTotal)}</strong>
-      </div>
+      {lines.length === 0 ? (
+        <p className="empty-state">El carrito está vacío.<br />Agrega productos desde el catálogo.</p>
+      ) : (
+        <ul className="cart-list">
+          {lines.map((line) => {
+            const computed = computeLine(line);
+            return (
+              <li key={line.productId} className="cart-row">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <strong>{line.name}</strong>
+                    <small>{formatCurrency(line.unitPrice)} c/u</small>
+                  </div>
+                  <button className="danger" onClick={() => onRemove(line.productId)} style={{ padding: "0.25rem 0.6rem", fontSize: "0.75rem" }}>
+                    ✕
+                  </button>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div className="qty-controls">
+                    <button onClick={() => onSetQuantity(line.productId, Math.max(1, line.quantity - 1))}>−</button>
+                    <span>{line.quantity}</span>
+                    <button onClick={() => onSetQuantity(line.productId, line.quantity + 1)}>+</button>
+                  </div>
+                  <div className="line-summary">
+                    {computed.lineDiscountAmount > 0 && (
+                      <small>− {formatCurrency(computed.lineDiscountAmount)}</small>
+                    )}
+                    <strong>{formatCurrency(computed.lineSubtotalAfterDiscount)}</strong>
+                  </div>
+                </div>
+
+                <div className="discount-controls">
+                  <select
+                    value={line.lineDiscountType ?? "none"}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const type: DiscountType = val === "none" ? null : (val as DiscountType);
+                      onSetLineDiscount(line.productId, type, type ? line.lineDiscountValue : 0);
+                    }}
+                  >
+                    <option value="none">Sin descuento</option>
+                    <option value="percent">% Descuento</option>
+                    <option value="fixed">$ Descuento fijo</option>
+                  </select>
+                  {line.lineDiscountType ? (
+                    <input
+                      type="number"
+                      min={0}
+                      value={line.lineDiscountValue}
+                      onChange={(e) =>
+                        onSetLineDiscount(line.productId, line.lineDiscountType, Number(e.target.value || 0))
+                      }
+                    />
+                  ) : null}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {lines.length > 0 && (
+        <>
+          <div className="cart-discount-box" style={{ marginTop: "0.75rem" }}>
+            <h3>Descuento del carrito</h3>
+            <div className="discount-controls">
+              <select
+                value={cartDiscountType ?? "none"}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const type: DiscountType = raw === "none" ? null : (raw as DiscountType);
+                  onSetCartDiscount(type, type ? cartDiscountValue : 0);
+                }}
+              >
+                <option value="none">Sin descuento</option>
+                <option value="percent">% Descuento</option>
+                <option value="fixed">$ Descuento fijo</option>
+              </select>
+              {cartDiscountType ? (
+                <input
+                  type="number"
+                  min={0}
+                  value={cartDiscountValue}
+                  onChange={(e) => onSetCartDiscount(cartDiscountType, Number(e.target.value || 0))}
+                />
+              ) : null}
+            </div>
+          </div>
+
+          <div className="totals-grid">
+            <span>Subtotal</span>
+            <strong>{formatCurrency(totals.subtotal)}</strong>
+
+            {totals.lineDiscountTotal > 0 && (
+              <>
+                <span>Desc. por línea</span>
+                <strong style={{ color: "var(--green)" }}>− {formatCurrency(totals.lineDiscountTotal)}</strong>
+              </>
+            )}
+
+            {totals.cartDiscountAmount > 0 && (
+              <>
+                <span>Desc. carrito</span>
+                <strong style={{ color: "var(--green)" }}>− {formatCurrency(totals.cartDiscountAmount)}</strong>
+              </>
+            )}
+
+            <span>Base gravable</span>
+            <strong>{formatCurrency(totals.taxableBase)}</strong>
+
+            <span>IVA (19%)</span>
+            <strong>{formatCurrency(totals.taxAmount)}</strong>
+
+            <span>Total</span>
+            <strong style={{ color: "var(--accent)", fontSize: "1rem" }}>{formatCurrency(totals.grandTotal)}</strong>
+          </div>
+        </>
+      )}
     </section>
   );
 }
